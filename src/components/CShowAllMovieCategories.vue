@@ -2,13 +2,13 @@
   <div>
     <v-container
       id="scroll-target"
-      style="height: 100%;"
       class="overflow-y-auto"
     >
       <v-row v-scroll:#scroll-target="onScroll"
+        style="height: 100vh"
         justify="center"
-        style="height: 100vh">
-        <div class="col-2" v-for="(movie, index) in movies" :key="index">
+        class="no-gutters">
+        <div class="col-md-2 col-xs-12 col-sm-3 mb-4" v-for="(movie, index) in movies" :key="index">
           <c-movie-cover :id="movie.id" :image="fullPath(movie.poster_path)" />
         </div>
       </v-row>
@@ -34,9 +34,9 @@ export default {
   data () {
     return {
       offsetTop: 0,
-      updateList: 200,
-      canUpdate: true,
-      incUpdateList: 200
+      updateList: 0,
+      canUpdate: false,
+      incUpdateList: 0
     }
   },
 
@@ -55,14 +55,38 @@ export default {
     }
   },
 
+  watch: {
+    page (v) {
+      console.log(v)
+      if (v === 1) {
+        console.log('Entrou...')
+        this.initData()
+      }
+    }
+  },
+
   methods: {
     ...mapActions({
       AddListMovie: 'ADD_LIST_MOVIE'
     }),
 
+    initData () {
+      this.offsetTop = 0
+      this.updateList = 200
+      this.canUpdate = true
+      this.incUpdateList = 200
+      this.scrollToTop()
+    },
+
+    scrollToTop () {
+      let container = document.getElementById('scroll-target')
+      container.scrollTop = 0
+    },
+
     async onScroll (e) {
       this.offsetTop = e.target.scrollTop
       if (this.canUpdate && this.offsetTop > this.updateList) {
+        console.log('Entrou no onScroll')
         this.canUpdate = false
         await this.AddListMovie({
           category: this.category,
@@ -72,6 +96,10 @@ export default {
         this.canUpdate = true
       }
     }
+  },
+
+  mounted () {
+    this.initData()
   }
 
 }

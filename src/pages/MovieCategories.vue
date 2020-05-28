@@ -10,7 +10,6 @@
 <script>
 
 import CShowAllMovieCategories from '../components/CShowAllMovieCategories'
-
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -28,11 +27,12 @@ export default {
       get_toprated: 'GET_TOPRATED',
       get_nowplaying: 'GET_NOWPLAYING',
       get_popular: 'GET_POPULAR',
-      get_upcoming: 'GET_UPCOMING'
+      get_upcoming: 'GET_UPCOMING',
+      get_searchmovie: 'GET_SEARCHMOVIE',
+      get_wordsearch: 'GET_WORDSEARCH'
     }),
 
     loadCategories() {
-      console.log('get_' + this.category)
       return this['get_' + this.category]
     },
 
@@ -40,16 +40,33 @@ export default {
       return this.$route.params.category
     }
   },
+  watch: {
+    get_wordsearch (v) {
+      console.log(v)
+      this.AddWordsearch(v)
+      this.listMovie()
+    }
+  },
   methods: {
     ...mapActions({
       LoadAllList: 'LOAD_ALL_LIST',
-      LoadList: 'LOAD_LIST'
+      LoadList: 'LOAD_LIST',
+      AddWordsearch: 'ADD_WORDSEARCH',
+      SearchMovie: 'SEARCH_MOVIE'
     }),
 
     listMovie () {
-      this.LoadList({
-        category: this.category
-      })
+      console.log('quant.', this.get_wordsearch.length)
+      if (this.$route.params.category === 'searchmovie') {
+        console.log('Buscando novos movie: ', this.get_wordsearch)
+        this.SearchMovie({
+          movie: this.get_wordsearch
+        })
+      } else {
+        this.LoadList({
+          category: this.category
+        })
+      }
     }
 
   },

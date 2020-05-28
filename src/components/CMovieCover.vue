@@ -1,14 +1,13 @@
 <template>
-  <v-card tile >
     <a :href="link">
-    <v-img
-      :src="image"
-      class="white--text"
-      height="35vh"
-    >
+      <v-img
+        :src="image"
+        contain
+        class="white--text"
+        :aspect-ratio="0.9/1.2"
+      >
     </v-img>
     </a>
-  </v-card>
 </template>
 
 <script>

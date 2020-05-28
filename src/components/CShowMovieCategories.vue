@@ -1,10 +1,11 @@
 <template>
   <v-carousel 
-    height= 370px
+    height=390px
     hide-delimiters
-    class="px-4 py-2"
+    class="px-4"
   >
-    <v-hover v-slot:default="{ hover }">
+
+    <v-hover class="my-2" v-slot:default="{ hover }">
         <v-btn :to="slug" text>
           <strong>{{ category }}</strong>
           <v-layout>
@@ -24,8 +25,8 @@
       transition="fade-transition"
       v-for="(chunk, idChunk) in chunkMovies" :key=idChunk
     >
-      <div class="row">
-        <div class="col-2" v-for="(movie, idMovie) in chunk" :key=idMovie>
+      <div class="row no-gutters">
+        <div class="col-md-2 col-xs-12 col-sm-3" v-for="(movie, idMovie) in chunk" :key=idMovie>
           <c-movie-cover :id="movie.id" :image="fullPath(movie.poster_path)"></c-movie-cover>
         </div>
       </div>
@@ -56,7 +57,7 @@ export default {
   computed: {
     chunkMovies () {
       if (this.movies) {
-        const amountChunk = 6
+        const amountChunk = this.screenSize
         const chunk = []
         for (let i=0; i<this.movies.length; i+=amountChunk) {
           chunk.push(this.movies.slice(i, i + amountChunk))
@@ -65,6 +66,16 @@ export default {
       }
       
       return []
+    },
+    screenSize () {
+      let size = window.innerWidth
+      if (size < 600) {
+        return 1
+      } else if (size < 960) {
+        return 4
+      } else {
+        return 6
+      }
     },
 
     slug () {

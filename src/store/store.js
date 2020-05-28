@@ -1,30 +1,32 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { URI } from './constsUri'
 
 Vue.use(Vuex)
 
-const URI = {
-  popular: 'movie/popular',
-  nowplaying: 'movie/now_playing',
-  upcoming: 'movie/upcoming',
-  toprated: 'movie/top_rated',
-  genres: 'genre/movie/list',
-  search: '/search/movie',
-  urlImage: 'https://image.tmdb.org/t/p/w500'
-}
-
 export default new Vuex.Store({
     state: {
+      loading: false,
       genres: [],
       popular: [],
       nowplaying: [],
       upcoming: [],
       toprated: [],
-      searchMovie: [],
+      wordsearch: ' ',
+      searchmovie: [],
       urlImage: URI.urlImage,
-      movie: []
+      movie: [],
+      movievideos: [],
+      credits: [],
+      videos: [],
+      similar: []
     },
     getters: {
+
+      GET_LOADING(state) {
+        return state.loading
+      },
+
       GET_URLIMAGE(state) {
         return state.urlImage
       },
@@ -41,6 +43,14 @@ export default new Vuex.Store({
         return state.toprated
       },
 
+      GET_NOWPLAYING(state) {
+        return state.nowplaying
+      },
+
+      GET_UPCOMING(state) {
+        return state.upcoming
+      },
+
       GET_BIGGER_POPULARITY(state) {
         if(state.toprated.length !== 0) {
           let pontos = state.toprated.results.reduce((a,b) => Math.max(a,b.popularity), 0)
@@ -50,27 +60,43 @@ export default new Vuex.Store({
         }
       },
 
-      GET_NOWPLAYING(state) {
-        return state.nowplaying
-      },
-
-      GET_UPCOMING(state) {
-        return state.upcoming
-      },
-
-      GET_SEARCH_MOVIE(state) {
-        return state.searchMovie
-      },
-
+      // Retorna o movie
       GET_MOVIE(state) {
+        console.log('GETTERS: ', state.movie)
         return state.movie
+      },
+
+      // Retorna os creditos do filme especifico
+      GET_MOVIECREDITS(state) {
+        return state.credits
+      },
+
+      // Retorna os videos do filme especifico
+      GET_MOVIEVIDEOS(state) {
+        return state.videos
+      },
+
+      // Retorna os filmes similiar do filme especifico
+      GET_MOVIESIMILAR(state) {
+        return state.similar
+      },
+
+      // Buscando o resultado da pesquisa dos filmes
+      GET_SEARCHMOVIE(state) {
+        return state.searchmovie
+      },
+
+      // Palavra que sera pesquisa
+      GET_WORDSEARCH(state) {
+        return state.wordsearch
+      },
+
+      GET_RATED (state) {
+        return state.toprated
       }
     },
 
     mutations: {
-      // SET_GENRES (state, payload) {
-      //     state[payload.state] = payload.data.genres
-      // },
 
       // Adiciona a uma categoria e suas proximas paginas
       SET_CATEGORY (state, payload) {
@@ -86,15 +112,29 @@ export default new Vuex.Store({
         }
       },
 
-      // Adiciona o resultado de uma pesquisa
-      SET_SEARCH (state, movies) {
-          state.searchMovie = movies.data
+      SET_LOADING (state, canLoading) {
+        state.loading = canLoading
+      },
+
+      // Adicionar a palavra que sera procurada
+      SET_WORDSEARCH (state, word) {
+        state.searchmovie = []
+        state.wordsearch = word
+      },
+
+      SET_MOVIE (state, payload) {
+        if (payload.detail === undefined) {
+          state.movie = payload.data
+        } else {
+          state[payload.detail] = payload.data
+        }
       }
     },
 
     actions: {
       // Carrega uma lista de acordo com a categoria 
       LOAD_LIST ({commit}, {category, params}) {
+        commit('SET_LOADING', true)
         Vue.prototype.$http
           .get(URI[category], { params } )
           .then(dataList => {
@@ -106,6 +146,9 @@ export default new Vuex.Store({
           .catch(error => {
             console.log(error)
           })
+          .finally(() => {
+            commit('SET_LOADING', false)
+          })
       },
 
       // Carrega varias categorias
@@ -116,21 +159,38 @@ export default new Vuex.Store({
       },
 
       // Adiciona proxima pagina de categoria
-      ADD_LIST_MOVIE({dispatch}, {category, page}) {
+      ADD_LIST_MOVIE({dispatch, state}, { category, page }) {
+        
         const params = {
           page: (page + 1)
         }
-        dispatch('LOAD_LIST', {category: category, params: params})
+
+        if (category === 'searchmovie') {
+          dispatch('SEARCH_MOVIE', {
+            movie: state.wordsearch,
+            page: params.page
+          })
+        } else {
+          dispatch('LOAD_LIST', {
+            category: category, 
+            params: params
+          })
+        }
+        
       },
 
       // Carregar somente um filme
-      LOAD_MOVIE({commit}, idMovie) {
-        Vue.prototype.$http
-        .get('movie/' + idMovie)
+      async LOAD_MOVIE({commit}, {idMovie, detail}) {
+        let url = detail === undefined 
+          ? idMovie
+          : `${idMovie}/${detail}`
+
+        await Vue.prototype.$http
+        .get('movie/' + url)
         .then(dataList => {
-            commit('SET_CATEGORY', {
+            commit('SET_MOVIE', {
               data: dataList.data,
-              state: 'movie'
+              detail: detail
             })
         })
         .catch(error => {
@@ -138,16 +198,26 @@ export default new Vuex.Store({
         })
       },
 
+
+      ADD_WORDSEARCH ({commit}, word) {
+        commit('SET_WORDSEARCH', word)
+      },
+
       // Procura um filme
-      SEARCH_MOVIE ({commit}, movie) {
+      SEARCH_MOVIE ({ commit }, { movie, page }) {
+
         const params = {
-            query: movie
+            query: movie,
+            page: page ?? 1
         }
 
         Vue.prototype.$http
-          .get(URI.search, { params })
+          .get(URI.searchmovie, { params: params })
           .then(dataMovieList => {
-              commit('SET_SEARCH', dataMovieList)
+              commit('SET_CATEGORY', {
+                data: dataMovieList.data,
+                state: 'searchmovie'
+              })
           })
       }
     }

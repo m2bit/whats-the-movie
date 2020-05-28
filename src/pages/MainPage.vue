@@ -1,6 +1,7 @@
 <template>
-    <div>
+    <div dark>
       <c-show-newcoming
+        :id-image="idImage"
         :image="image"
         :title="title"
         :description="description"
@@ -11,7 +12,7 @@
         category="Top Rated"
       ></c-show-movie-categories>
 
-      <c-show-movie-categories
+      <c-show-movie-categories 
         :movies=getNowPlaying.results
         category="Now Playing"
       ></c-show-movie-categories>
@@ -61,9 +62,15 @@ export default {
         : ''
     },
 
+    idImage () {
+      return this.getBiggerPopularity 
+        ? this.getBiggerPopularity.id
+        : ''
+    },
+
     title () {
       return this.getBiggerPopularity 
-        ? this.getBiggerPopularity.original_title
+        ? this.getBiggerPopularity.title
         : ''
     },
 
@@ -86,11 +93,17 @@ export default {
         'popular',
         'upcoming'
       ])
-    }
+    },
 
   },
+
   mounted () {
     this.listMovie()
   }
 }
 </script>
+
+<style lang="sass" >
+  .v-btn:not(.v-btn--round).v-size--default
+    padding: 0 10px !important
+</style>

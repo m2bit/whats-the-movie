@@ -14,7 +14,7 @@
 
         <div class="row">
             <div>
-              <v-btn class="btnInfo ma-2 " tile>
+              <v-btn class="btnInfo ma-2" :to="slug" tile>
                 <v-icon left>mdi-pencil</v-icon> 
                 More information
               </v-btn>
@@ -33,6 +33,10 @@ export default {
     movieCategory
   ],
   props: {
+    idImage: {
+      type: [ String, Number],
+      default: 0
+    },
     image: {
       type: String,
       required: true
@@ -43,6 +47,11 @@ export default {
     },
     description: {
       type: String
+    }
+  },
+  computed: {
+    slug () {
+      return '/movie-detail/' + this.idImage
     }
   }
 }
